@@ -237,7 +237,7 @@ export class GameRenderer {
       ctx.ellipse(10, 0, 2.5, 6, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-    } else {
+    } else if (f.type === 'shake') {
       // Grimace Shake: Purple cup
       ctx.fillStyle = '#800080';
       ctx.beginPath();
@@ -254,6 +254,40 @@ export class GameRenderer {
       ctx.moveTo(0, -7);
       ctx.lineTo(2, -12);
       ctx.stroke();
+    } else if (f.type === 'kopi') {
+      // Kopi (Coffee Cup)
+      ctx.fillStyle = '#1e293b'; // dark cup
+      ctx.fillRect(-6, -6, 12, 12);
+      // Cup lid
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-7, -8, 14, 3);
+      // Cup sleeve
+      ctx.fillStyle = '#8b4513'; // brown sleeve
+      ctx.fillRect(-6.5, -2, 13, 6);
+    } else if (f.type === 'indomie') {
+      // Indomie (Noodle Bowl)
+      ctx.fillStyle = '#facc15'; // yellow bowl/packet
+      ctx.beginPath();
+      ctx.arc(0, 2, 8, 0, Math.PI, false); // bottom half circle
+      ctx.closePath();
+      ctx.fill();
+      // Noodle squiggles on top
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-6, 2);
+      ctx.quadraticCurveTo(-3, -3, 0, 2);
+      ctx.quadraticCurveTo(3, -3, 6, 2);
+      ctx.stroke();
+      // Red branding line
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-4, 5, 8, 2);
+    } else {
+      // Fallback
+      ctx.fillStyle = f.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
   }
