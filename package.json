@@ -1,0 +1,26 @@
+{
+  "name": "sahur-io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multiplayer brainrot .io game based on Sahur",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "test:server": "npm run test --prefix server",
+    "test:client": "npm run test --prefix client",
+    "test": "npm run test:server && npm run test:client",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "eslint": "^9.0.0",
+    "prettier": "^3.2.5"
+  }
+}

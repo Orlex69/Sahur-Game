@@ -1,0 +1,37 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test_and_lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install Server & Client Dependencies
+        run: |
+          npm ci --prefix server
+          npm ci --prefix client
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Server Tests
+        run: npm run test:server
+
+      - name: Build Client Bundle
+        run: npm run build --prefix client
