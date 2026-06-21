@@ -63,7 +63,7 @@ test('Game Engine - Player management', () => {
 
   // Add player
   const player = game.addPlayer('test-socket-id', 'GigaChad', 'gigachad');
-  assert.strictEqual(game.players.size, 1);
+  assert.strictEqual(game.players.size, 6, 'Should have 1 player + 5 bots');
   assert.strictEqual(player.name, 'GigaChad');
   assert.strictEqual(player.skin, 'gigachad');
   assert.strictEqual(player.nodes.length, 1, 'Spawn node count must be 1');
@@ -76,7 +76,7 @@ test('Game Engine - Player management', () => {
 
   // Remove player
   game.removePlayer('test-socket-id');
-  assert.strictEqual(game.players.size, 0);
+  assert.strictEqual(game.players.size, 5, 'Should have 5 bots left after player disconnects');
 });
 
 test('Game Engine - Game ticking and ring shrinking', () => {
@@ -98,6 +98,7 @@ test('Game Engine - Game ticking and ring shrinking', () => {
 
 test('Game Engine - Kentongan food speed boost', () => {
   const game = new Game();
+  game.spawnFood = () => {}; // Prevent random food spawns
   const player = game.addPlayer('test-socket', 'Sigma', 'gigachad');
 
   // Set food manually and trigger collision
@@ -142,6 +143,7 @@ test('Game Engine - Kentongan food speed boost', () => {
 
 test('Game Engine - Panci food heavy mass and slow', () => {
   const game = new Game();
+  game.spawnFood = () => {}; // Prevent random food spawns
   const player = game.addPlayer('test-socket', 'Sigma', 'gigachad');
   const initialMass = player.getCombinedMass();
 
@@ -167,6 +169,7 @@ test('Game Engine - Panci food heavy mass and slow', () => {
 
 test('Game Engine - Megaphone shield invincibility against Sleeper', () => {
   const game = new Game();
+  game.spawnFood = () => {}; // Prevent random food spawns
   const player = game.addPlayer('test-socket', 'Sigma', 'gigachad');
   const initialNodeCount = player.nodes.length;
 

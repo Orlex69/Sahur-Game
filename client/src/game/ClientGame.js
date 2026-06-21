@@ -94,7 +94,12 @@ export class ClientGame {
   }
 
   restartGame() {
-    this.lobby.show();
+    if (this.selfName) {
+      // Instantly respawn with previous name and skin
+      this.joinGame(this.selfName, this.lobby.selectedSkin);
+    } else {
+      this.lobby.show();
+    }
   }
 
   handleWelcome(data) {
@@ -111,20 +116,31 @@ export class ClientGame {
     );
     this.leaderboard.update(serverState.leaderboard, this.selfId);
 
+    const myPlayer = serverState.players.find((p) => p.id === this.selfId);
+
     // If intermission starts, show game over modal
     if (serverState.isIntermission && !this.gameOverModal.el) {
-      const myPlayer = serverState.players.find((p) => p.id === this.selfId);
       const personalStats = {
         score: myPlayer
           ? myPlayer.nodes.reduce((sum, n) => sum + n.mass, 0)
-          : 0,
+          : parseInt(this.hud.mValue.textContent || '0', 10),
         isDead: myPlayer ? false : true,
       };
       this.gameOverModal.show(personalStats, serverState.leaderboard);
       soundManager.playAdhan(); // Fajr prayer Adhan sound alarm
     }
 
-    if (!serverState.isIntermission && this.gameOverModal.el) {
+    // If player dies mid-round, show game over modal immediately
+    const isLobbyVisible = this.lobby.el.style.display !== 'none';
+    if (this.selfId && !myPlayer && !serverState.isIntermission && !this.gameOverModal.el && !isLobbyVisible) {
+      const personalStats = {
+        score: parseInt(this.hud.mValue.textContent || '0', 10),
+        isDead: true,
+      };
+      this.gameOverModal.show(personalStats, serverState.leaderboard);
+    }
+
+    if (!serverState.isIntermission && this.gameOverModal.el && myPlayer) {
       this.gameOverModal.hide();
     }
 

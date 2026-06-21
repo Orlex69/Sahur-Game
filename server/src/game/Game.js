@@ -9,6 +9,9 @@ import {
   calculateSplit,
 } from './Physics.js';
 import { Player, PlayerNode, Food, AngrySleeper } from './Entity.js';
+import { BotController } from './Bot.js';
+
+const TARGET_BOT_COUNT = 5;
 
 export class Game {
   constructor() {
@@ -16,6 +19,7 @@ export class Game {
     this.food = [];
     this.alarms = [];
     this.ejectedMasses = [];
+    this.bots = [];
 
     this.foodIdCounter = 0;
     this.alarmIdCounter = 0;
@@ -23,7 +27,7 @@ export class Game {
     this.nodeIdCounter = 0;
 
     // Game timer state
-    this.roundDuration = 90; // 90 seconds per round
+    this.roundDuration = 180; // 180 seconds per round
     this.timer = this.roundDuration;
     this.isIntermission = false;
     this.intermissionTimer = 10; // 10 seconds between rounds
@@ -48,6 +52,12 @@ export class Game {
 
     // Spawn initial food
     this.spawnFood(MAX_FOOD);
+
+    // Spawn bots
+    this.bots = [];
+    for (let i = 0; i < TARGET_BOT_COUNT; i++) {
+      this.bots.push(new BotController(this, `bot_${i}`));
+    }
   }
 
   spawnFood(count) {
@@ -72,6 +82,7 @@ export class Game {
 
   removePlayer(id) {
     this.players.delete(id);
+    this.bots = this.bots.filter(b => b.id !== id);
   }
 
   handleInput(id, angle, speedFraction) {
@@ -175,6 +186,15 @@ export class Game {
     // Ring shrinks from maxRingRadius down to 250px
     this.ringRadius = 250 + (this.maxRingRadius - 250) * timeRatio;
 
+    // Update bots
+    this.bots.forEach(bot => bot.update(this, dt));
+
+    // Respawn bots if they die
+    this.bots = this.bots.filter(bot => !bot.player.isDead);
+    while (this.bots.length < TARGET_BOT_COUNT) {
+      this.bots.push(new BotController(this, `bot_${Math.random().toString(36).substr(2, 9)}`));
+    }
+
     // 1. Update Player Node Physics
     this.players.forEach((player) => {
       if (player.isDead) return;
@@ -252,7 +272,7 @@ export class Game {
       }
 
       // Check self-merging of nodes
-      this.handleSelfMerge(player);
+      this.handleSelfMerge(player, dt);
 
       player.updateScore();
     });
@@ -280,7 +300,7 @@ export class Game {
     }
   }
 
-  handleSelfMerge(player) {
+  handleSelfMerge(player, dt) {
     const nodes = player.nodes;
     if (nodes.length <= 1) return;
 
@@ -298,6 +318,15 @@ export class Game {
             nodeA.updateMass(nodeA.mass + nodeB.mass);
             nodes.splice(j, 1);
             j--;
+          } else if (dist > 0) {
+            // Apply attraction force to pull them together
+            const force = 120; // speed of attraction in pixels per second
+            const dx = (nodeB.x - nodeA.x) / dist;
+            const dy = (nodeB.y - nodeA.y) / dist;
+            nodeA.x += dx * force * dt;
+            nodeA.y += dy * force * dt;
+            nodeB.x -= dx * force * dt;
+            nodeB.y -= dy * force * dt;
           }
         }
       }
@@ -352,6 +381,14 @@ export class Game {
             player.speedMultiplier = 1.25;
             player.speedMultiplierTimer = 3.0;
             node.updateMass(node.mass + f.mass);
+          } else if (f.type === 'kopi') {
+            // Coffee: Fast movement boost
+            player.speedMultiplier = 1.6;
+            player.speedMultiplierTimer = 5.0;
+            node.updateMass(node.mass + f.mass);
+          } else if (f.type === 'indomie') {
+            // Indomie: 1.2x Mass Multiplier!
+            node.updateMass(Math.floor(node.mass * 1.2));
           } else {
             node.updateMass(node.mass + f.mass);
           }
@@ -485,6 +522,17 @@ export class Game {
     this.ringRadius = this.maxRingRadius;
 
     // Revive all dead players and reset their scores/nodes
+
+    // We don't need to re-init bots here since revive handles them because they are in `this.players`.
+    // Wait, the bots list might get out of sync if we revive dead ones that were removed. 
+    // Actually, in `tick` we replace dead bots. So `this.players` might contain dead bots that get revived.
+    // Let's clear dead players that are bots.
+    const deadBots = [];
+    this.players.forEach(p => {
+      if (p.isBot && p.isDead) deadBots.push(p.id);
+    });
+    deadBots.forEach(id => this.removePlayer(id));
+
     this.players.forEach((player) => {
       player.isDead = false;
       player.score = 0;

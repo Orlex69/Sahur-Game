@@ -3,7 +3,7 @@
 ## En-tête
 - **Développeurs** : Alex B. & Antigravity (AI Agent)
 - **Description** : Sahur.io est un jeu multijoueur en temps réel basé sur le concept d'Agar.io, revisité avec humour sur le thème du célèbre meme indonésien **"Tung Tung Sahur"** (les patrouilles réveillant les habitants en frappant sur des casseroles, d'anciens tambours en bambou et des mégaphones) couplé aux memes internet ("Brainrot"). Les joueurs incarnent des patrouilleurs du bruit qui accumulent des instruments de musique (kentongan, panci, toa, bedug, shakes) pour faire le plus grand ramdam possible (grossir) avant la fin de la patrouille, tout en évitant les voisins endormis (les Sleepers 😴) sous peine d'exploser.
-- **URL de production** : https://orlex69.github.io/Sahur-Game/
+- **URL de production** : https://sahur-game.onrender.com/
 - **Backend serveur recommandé** : https://sahur-game-server.onrender.com
 
 ### Instructions pour lancer en local
@@ -44,6 +44,15 @@
   - Directives strictes de développement Web (Atomic Design, séparation des préoccupations).
   - Règles de qualité de code (SRP, DRY, KISS).
   - Mode Planification (création obligatoire d'un plan d'implémentation avant d'écrire du code de production).
+
+---
+
+## Nouveautés Récentes
+- **Bots IA Intégrés** : Ajout de bots autonomes qui patrouillent, cherchent de la nourriture et fuient les menaces.
+- **Parties plus longues** : La durée des rounds a été augmentée à 3 minutes.
+- **Nouveaux Boosts** : Ajout du Kopi (boost de vitesse) et de l'Indomie (multiplicateur de masse instantané).
+- **Respawn Instantané** : Possibilité de réapparaître instantanément sans repasser par le lobby après une élimination.
+- **Attraction Automatique** : Les cellules divisées s'attirent automatiquement après leur délai de fusion, facilitant la recombinaison.
 
 ---
 

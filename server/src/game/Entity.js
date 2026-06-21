@@ -1,4 +1,4 @@
-﻿import { massToRadius, MAP_SIZE } from './Physics.js';
+import { massToRadius, MAP_SIZE } from './Physics.js';
 
 // Predefined neon colors
 const NEON_COLORS = [
@@ -11,7 +11,7 @@ const NEON_COLORS = [
 ];
 
 // Predefined brainrot noise instrument names
-const BRAINROT_FOODS = ['kentongan', 'panci', 'toa', 'bedug', 'shake'];
+const BRAINROT_FOODS = ['kentongan', 'panci', 'toa', 'bedug', 'shake', 'kopi', 'indomie'];
 
 export class Food {
   constructor(id, x, y) {
@@ -65,6 +65,7 @@ export class Player {
     this.speedMultiplier = 1.0;
     this.speedMultiplierTimer = 0.0;
     this.shieldTimer = 0.0;
+    this.isBot = false;
   }
 
   getCombinedMass() {
