@@ -137,6 +137,11 @@ export class GameRenderer {
       this.drawAlarm(ctx, a);
     });
 
+    // 7.5 Draw Snake Enemies
+    (gameState.snakes || []).forEach((s) => {
+      this.drawSnake(ctx, s);
+    });
+
     // 8. Draw Player Nodes
     // Sort players so smaller players are drawn first (bigger on top)
     const sortedPlayers = [...gameState.players].sort((a, b) => {
@@ -332,6 +337,47 @@ export class GameRenderer {
     ctx.font = `bold ${a.radius * 0.4}px var(--font-mono)`;
     ctx.fillStyle = 'rgba(147, 197, 253, 0.9)'; // light blue Zzz
     ctx.fillText('Zzz', a.radius * 0.5, zOffset);
+
+    ctx.restore();
+  }
+
+  drawSnake(ctx, s) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+
+    // Draw head
+    ctx.fillStyle = s.color;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, s.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw body segments trailing from head
+    const segmentCount = 5;
+    for (let i = 1; i <= segmentCount; i++) {
+      const alpha = 1 - i * 0.14;
+      ctx.fillStyle = `rgba(34, 255, 109, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(-i * (s.radius * 0.6), 0, s.radius * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw eyes
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(-s.radius * 0.25, -s.radius * 0.22, s.radius * 0.16, 0, Math.PI * 2);
+    ctx.arc(s.radius * 0.15, -s.radius * 0.22, s.radius * 0.16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tongue flicker
+    ctx.strokeStyle = '#ff003e';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(s.radius * 0.4, 0);
+    ctx.lineTo(s.radius * 0.8, 0);
+    ctx.stroke();
 
     ctx.restore();
   }

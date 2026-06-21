@@ -94,9 +94,9 @@ export class ClientGame {
   }
 
   restartGame() {
-    if (this.selfName) {
-      // Instantly respawn with previous name and skin
-      this.joinGame(this.selfName, this.lobby.selectedSkin);
+    if (this.selfName && this.network) {
+      this.gameOverModal.hide();
+      this.network.sendRestart();
     } else {
       this.lobby.show();
     }

@@ -35,6 +35,29 @@ export class AngrySleeper {
   }
 }
 
+export class SnakeEnemy {
+  constructor(id, x, y) {
+    const margin = 120;
+    this.id = id;
+    this.radius = 20;
+    this.x = x ?? margin + Math.random() * (MAP_SIZE - margin * 2);
+    this.y = y ?? margin + Math.random() * (MAP_SIZE - margin * 2);
+    const angle = Math.random() * Math.PI * 2;
+    this.vx = Math.cos(angle) * 140;
+    this.vy = Math.sin(angle) * 140;
+    this.color = '#22ff6d';
+  }
+
+  respawn() {
+    const margin = 120;
+    this.x = margin + Math.random() * (MAP_SIZE - margin * 2);
+    this.y = margin + Math.random() * (MAP_SIZE - margin * 2);
+    const angle = Math.random() * Math.PI * 2;
+    this.vx = Math.cos(angle) * 140;
+    this.vy = Math.sin(angle) * 140;
+  }
+}
+
 export class PlayerNode {
   constructor(id, playerId, x, y, mass) {
     this.id = id;

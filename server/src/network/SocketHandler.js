@@ -37,6 +37,13 @@ export function setupSockets(io, game) {
       game.handleEject(socket.id);
     });
 
+    // Request restart during intermission
+    socket.on('restart', () => {
+      if (game.isIntermission) {
+        game.resetGame();
+      }
+    });
+
     // Disconnect
     socket.on('disconnect', () => {
       game.removePlayer(socket.id);

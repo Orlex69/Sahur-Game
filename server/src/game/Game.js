@@ -2,13 +2,14 @@ import {
   MAP_SIZE,
   MAX_FOOD,
   ALARM_COUNT,
+  SNAKE_COUNT,
   getSpeedByMass,
   getDistance,
   canEat,
   updatePosition,
   calculateSplit,
 } from './Physics.js';
-import { Player, PlayerNode, Food, AngrySleeper } from './Entity.js';
+import { Player, PlayerNode, Food, AngrySleeper, SnakeEnemy } from './Entity.js';
 import { BotController } from './Bot.js';
 
 const TARGET_BOT_COUNT = 5;
@@ -19,10 +20,12 @@ export class Game {
     this.food = [];
     this.alarms = [];
     this.ejectedMasses = [];
+    this.snakes = [];
     this.bots = [];
 
     this.foodIdCounter = 0;
     this.alarmIdCounter = 0;
+    this.snakeIdCounter = 0;
     this.ejectedIdCounter = 0;
     this.nodeIdCounter = 0;
 
@@ -48,6 +51,11 @@ export class Game {
     // Spawn initial sleeping neighbors
     for (let i = 0; i < ALARM_COUNT; i++) {
       this.alarms.push(new AngrySleeper(this.alarmIdCounter++));
+    }
+
+    // Spawn snake enemies on the map
+    for (let i = 0; i < SNAKE_COUNT; i++) {
+      this.snakes.push(new SnakeEnemy(this.snakeIdCounter++));
     }
 
     // Spawn initial food
@@ -291,6 +299,28 @@ export class Game {
       );
     });
 
+    // 2.5 Update snake enemy motion and bounce off walls
+    this.snakes.forEach((snake) => {
+      snake.x += snake.vx * dt;
+      snake.y += snake.vy * dt;
+
+      if (snake.x < snake.radius) {
+        snake.x = snake.radius;
+        snake.vx = Math.abs(snake.vx);
+      } else if (snake.x > MAP_SIZE - snake.radius) {
+        snake.x = MAP_SIZE - snake.radius;
+        snake.vx = -Math.abs(snake.vx);
+      }
+
+      if (snake.y < snake.radius) {
+        snake.y = snake.radius;
+        snake.vy = Math.abs(snake.vy);
+      } else if (snake.y > MAP_SIZE - snake.radius) {
+        snake.y = MAP_SIZE - snake.radius;
+        snake.vy = -Math.abs(snake.vy);
+      }
+    });
+
     // 3. Collisions & Interactions
     this.handleCollisions();
 
@@ -438,6 +468,26 @@ export class Game {
 
           // Respawn sleeper elsewhere
           this.alarms[k] = new AngrySleeper(alarm.id);
+          break;
+        }
+      }
+    }
+
+    // Node vs Snake Enemy (score penalty)
+    for (let i = 0; i < activeNodes.length; i++) {
+      const { player, node } = activeNodes[i];
+
+      for (let k = 0; k < this.snakes.length; k++) {
+        const snake = this.snakes[k];
+        const dist = getDistance(node.x, node.y, snake.x, snake.y);
+        if (dist < node.radius + snake.radius) {
+          const penalty = 10;
+          player.score = Math.max(0, player.score - penalty);
+          const massLoss = Math.min(node.mass - 10, penalty);
+          if (massLoss > 0) {
+            node.updateMass(node.mass - massLoss);
+          }
+          snake.respawn();
           break;
         }
       }
@@ -626,6 +676,13 @@ export class Game {
         x: Math.round(a.x),
         y: Math.round(a.y),
         radius: Math.round(a.radius),
+      })),
+      snakes: this.snakes.map((s) => ({
+        id: s.id,
+        x: Math.round(s.x),
+        y: Math.round(s.y),
+        radius: Math.round(s.radius),
+        color: s.color,
       })),
       ejected: this.ejectedMasses.map((e) => ({
         id: e.id,

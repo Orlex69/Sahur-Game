@@ -61,6 +61,12 @@ export class NetworkClient {
     }
   }
 
+  sendRestart() {
+    if (this.socket) {
+      this.socket.emit('restart');
+    }
+  }
+
   getSocketId() {
     return this.socket ? this.socket.id : null;
   }

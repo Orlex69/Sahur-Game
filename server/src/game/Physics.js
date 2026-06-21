@@ -5,6 +5,7 @@
 export const MAP_SIZE = 3000; // 3000x3000px arena
 export const TICK_RATE = 30; // 30 ticks per second
 export const ALARM_COUNT = 15; // Number of alarm clocks (viruses)
+export const SNAKE_COUNT = 10; // Number of bouncing snake enemies
 export const MAX_FOOD = 250; // Max food items on map
 
 /**
