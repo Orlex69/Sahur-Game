@@ -8,7 +8,7 @@ import {
   updatePosition,
   calculateSplit,
 } from './Physics.js';
-import { Player, PlayerNode, Food, AlarmClock } from './Entity.js';
+import { Player, PlayerNode, Food, AngrySleeper } from './Entity.js';
 
 export class Game {
   constructor() {
@@ -41,9 +41,9 @@ export class Game {
     this.alarms = [];
     this.ejectedMasses = [];
 
-    // Spawn initial alarms
+    // Spawn initial sleeping neighbors
     for (let i = 0; i < ALARM_COUNT; i++) {
-      this.alarms.push(new AlarmClock(this.alarmIdCounter++));
+      this.alarms.push(new AngrySleeper(this.alarmIdCounter++));
     }
 
     // Spawn initial food
@@ -179,6 +179,17 @@ export class Game {
     this.players.forEach((player) => {
       if (player.isDead) return;
 
+      // Update powerup timers
+      if (player.speedMultiplierTimer > 0) {
+        player.speedMultiplierTimer -= dt;
+        if (player.speedMultiplierTimer <= 0) {
+          player.speedMultiplier = 1.0;
+        }
+      }
+      if (player.shieldTimer > 0) {
+        player.shieldTimer -= dt;
+      }
+
       const angle =
         player.targetAngle !== undefined ? player.targetAngle : null;
       const speedFrac =
@@ -202,7 +213,7 @@ export class Game {
         }
 
         // Combine inputs + split physics velocities
-        const speed = getSpeedByMass(node.mass);
+        const speed = getSpeedByMass(node.mass) * player.speedMultiplier;
 
         // Update coordinates
         const stepX = dx * speed + node.vx;
@@ -313,7 +324,37 @@ export class Game {
       this.food = this.food.filter((f) => {
         const dist = getDistance(node.x, node.y, f.x, f.y);
         if (dist < node.radius) {
-          node.updateMass(node.mass + f.mass);
+          // Special food/instrument effects
+          if (f.type === 'kentongan') {
+            // Speed boost (tung-tung beat tempo)
+            player.speedMultiplier = 1.35;
+            player.speedMultiplierTimer = 4.0;
+            node.updateMass(node.mass + f.mass);
+          } else if (f.type === 'panci') {
+            // Heavy metallic pan (high mass but slow down)
+            player.speedMultiplier = 0.8;
+            player.speedMultiplierTimer = 4.0;
+            node.updateMass(node.mass + Math.floor(f.mass * 2.5));
+          } else if (f.type === 'bedug') {
+            // Rhythm boost (reduced merge cooldown)
+            player.nodes.forEach((n) => {
+              if (n.mergeTime)
+                n.mergeTime = Math.max(Date.now(), n.mergeTime - 3000);
+            });
+            node.updateMass(node.mass + f.mass);
+          } else if (f.type === 'toa') {
+            // Megaphone voice shield (invincibility to sleepers)
+            player.shieldTimer = 5.0;
+            node.updateMass(node.mass + f.mass);
+          } else if (f.type === 'shake') {
+            // Brainrot shake: random boost!
+            player.shieldTimer = 4.0;
+            player.speedMultiplier = 1.25;
+            player.speedMultiplierTimer = 3.0;
+            node.updateMass(node.mass + f.mass);
+          } else {
+            node.updateMass(node.mass + f.mass);
+          }
           player.eatTriggered = true; // Play eat sound
           return false; // remove food
         }
@@ -337,23 +378,29 @@ export class Game {
       });
     }
 
-    // Node vs Alarm Clock (Spiked virus)
+    // Node vs Angry Sleeper (Spiked sleeping neighbor)
     for (let i = 0; i < activeNodes.length; i++) {
       const { player, node } = activeNodes[i];
 
       for (let k = 0; k < this.alarms.length; k++) {
         const alarm = this.alarms[k];
-        // If node is larger than alarm and collides
+        // If node is larger than sleeper and collides
         if (
           node.mass > alarm.mass &&
           getDistance(node.x, node.y, alarm.x, alarm.y) < node.radius + 10
         ) {
-          // Explode the player!
-          this.explodeNode(player, node);
-          player.alarmExploded = true; // Event notification for sound
+          if (player.shieldTimer > 0) {
+            // Shield active: wake up the sleeper!
+            node.updateMass(node.mass + alarm.mass);
+            player.eatPlayerTriggered = true; // Play megaphone vocal blast
+          } else {
+            // Explode the player! (gets hit by thrown shoe)
+            this.explodeNode(player, node);
+            player.alarmExploded = true; // Play noise alert sound
+          }
 
-          // Respawn alarm elsewhere
-          this.alarms[k] = new AlarmClock(alarm.id);
+          // Respawn sleeper elsewhere
+          this.alarms[k] = new AngrySleeper(alarm.id);
           break;
         }
       }
@@ -442,6 +489,9 @@ export class Game {
       player.isDead = false;
       player.score = 0;
       player.nodes = [];
+      player.speedMultiplier = 1.0;
+      player.speedMultiplierTimer = 0.0;
+      player.shieldTimer = 0.0;
 
       const margin = 200;
       const rx = margin + Math.random() * (MAP_SIZE - margin * 2);
@@ -477,6 +527,8 @@ export class Game {
         name: player.name,
         color: player.color,
         skin: player.skin,
+        speedMultiplier: player.speedMultiplier,
+        shieldTimer: player.shieldTimer,
         nodes: player.nodes.map((n) => ({
           id: n.id,
           x: Math.round(n.x),

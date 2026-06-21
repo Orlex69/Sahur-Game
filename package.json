@@ -1,6 +1,7 @@
 {
   "name": "sahur-io",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "Multiplayer brainrot .io game based on Sahur",
   "workspaces": [

@@ -8,9 +8,17 @@ export class NetworkClient {
   }
 
   connect() {
-    // In dev mode, Vite proxies '/socket.io' to localhost:3000
-    // In production, express serves client and mounts sockets on same host/port
-    this.socket = io(window.location.origin);
+    // Determine the server connection endpoint:
+    // If we're on localhost, we use window.location.origin (Vite proxies to localhost:3000)
+    // If we're on production (e.g. GitHub Pages), we connect to the configured production server URL
+    const isLocal =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    const serverUrl = isLocal
+      ? window.location.origin
+      : import.meta.env.VITE_SERVER_URL || window.location.origin;
+
+    this.socket = io(serverUrl);
 
     this.socket.on('connect', () => {
       console.log('Connected to Sahur.io Server');

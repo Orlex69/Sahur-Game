@@ -95,3 +95,109 @@ test('Game Engine - Game ticking and ring shrinking', () => {
     'Timer must decrement by dt'
   );
 });
+
+test('Game Engine - Kentongan food speed boost', () => {
+  const game = new Game();
+  const player = game.addPlayer('test-socket', 'Sigma', 'gigachad');
+
+  // Set food manually and trigger collision
+  game.food = [
+    {
+      id: 999,
+      x: player.nodes[0].x,
+      y: player.nodes[0].y,
+      mass: 10,
+      type: 'kentongan',
+      color: '#fff',
+    },
+  ];
+  game.handleCollisions();
+
+  assert.ok(
+    player.speedMultiplier > 1.0,
+    'Eating a kentongan must trigger speed boost'
+  );
+  assert.strictEqual(
+    player.speedMultiplierTimer,
+    4.0,
+    'Timer must start at 4 seconds'
+  );
+
+  // Decrement timer
+  game.tick(1.0);
+  assert.strictEqual(
+    player.speedMultiplierTimer,
+    3.0,
+    'Timer must decrement by dt'
+  );
+
+  // End timer
+  game.tick(3.0);
+  assert.strictEqual(
+    player.speedMultiplier,
+    1.0,
+    'Speed must return to normal after timer ends'
+  );
+});
+
+test('Game Engine - Panci food heavy mass and slow', () => {
+  const game = new Game();
+  const player = game.addPlayer('test-socket', 'Sigma', 'gigachad');
+  const initialMass = player.getCombinedMass();
+
+  // Eat panci
+  game.food = [
+    {
+      id: 999,
+      x: player.nodes[0].x,
+      y: player.nodes[0].y,
+      mass: 10,
+      type: 'panci',
+      color: '#fff',
+    },
+  ];
+  game.handleCollisions();
+
+  assert.ok(
+    player.getCombinedMass() > initialMass + 10,
+    'Panci must give extra heavy mass'
+  );
+  assert.ok(player.speedMultiplier < 1.0, 'Panci must apply slow multiplier');
+});
+
+test('Game Engine - Megaphone shield invincibility against Sleeper', () => {
+  const game = new Game();
+  const player = game.addPlayer('test-socket', 'Sigma', 'gigachad');
+  const initialNodeCount = player.nodes.length;
+
+  // Eat Megaphone Toa
+  game.food = [
+    {
+      id: 999,
+      x: player.nodes[0].x,
+      y: player.nodes[0].y,
+      mass: 10,
+      type: 'toa',
+      color: '#fff',
+    },
+  ];
+  game.handleCollisions();
+
+  assert.ok(player.shieldTimer > 0, 'Megaphone must activate shield');
+
+  // Collide with Angry Sleeper
+  const alarm = game.alarms[0];
+  // Teleport player node to Angry Sleeper
+  player.nodes[0].x = alarm.x;
+  player.nodes[0].y = alarm.y;
+  player.nodes[0].updateMass(150); // make it larger than sleeper mass (120) to trigger collision
+
+  game.handleCollisions();
+
+  assert.strictEqual(
+    player.nodes.length,
+    initialNodeCount,
+    'Should NOT explode since shield is active'
+  );
+  assert.ok(player.nodes[0].mass > 150, 'Should gain the sleeper mass');
+});

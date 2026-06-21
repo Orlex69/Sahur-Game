@@ -25,6 +25,10 @@ export class ClientGame {
     this.selfId = null;
     this.selfName = '';
 
+    // Screen Shake State
+    this.shakeDuration = 0;
+    this.shakeIntensity = 0;
+
     // Smooth Interpolation State
     // Map of nodeId -> { currentX, currentY, targetX, targetY }
     this.nodesInterpolation = new Map();
@@ -141,9 +145,17 @@ export class ClientGame {
             break;
           case 'explode':
             soundManager.playExplode();
+            if (isSelf) {
+              this.shakeDuration = 15;
+              this.shakeIntensity = 10;
+            }
             break;
           case 'eat_player':
             soundManager.playEatPlayer();
+            if (isSelf) {
+              this.shakeDuration = 10;
+              this.shakeIntensity = 6;
+            }
             // Spawn floating text at eating spot
             const p = serverState.players.find(
               (pl) => pl.id === event.playerId
@@ -252,8 +264,20 @@ export class ClientGame {
       });
       this.floatingTexts = this.floatingTexts.filter((t) => t.opacity > 0);
 
+      // Decise screen shake
+      if (this.shakeDuration > 0) {
+        this.shakeDuration--;
+      } else {
+        this.shakeIntensity = 0;
+      }
+
       // 3. Render frame
-      this.renderer.draw(this.gameState, this.selfId, this.floatingTexts);
+      this.renderer.draw(
+        this.gameState,
+        this.selfId,
+        this.floatingTexts,
+        this.shakeDuration > 0 ? this.shakeIntensity : 0
+      );
     }
 
     requestAnimationFrame(() => this.loop());

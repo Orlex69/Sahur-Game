@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
 jobs:
   test_and_lint:
     runs-on: ubuntu-latest
@@ -33,5 +42,29 @@ jobs:
       - name: Run Server Tests
         run: npm run test:server
 
+      - name: Run Client Tests
+        run: npm run test:client
+
       - name: Build Client Bundle
         run: npm run build --prefix client
+        env:
+          VITE_BASE_URL: /Sahur-Game/
+          VITE_SERVER_URL: https://sahur-game-server.onrender.com
+
+      - name: Upload Pages Artifact
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist
+
+  deploy:
+    needs: test_and_lint
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -10,8 +10,8 @@ const NEON_COLORS = [
   '#ffff00', // Neon Yellow
 ];
 
-// Predefined brainrot food names
-const BRAINROT_FOODS = ['date', 'water', 'milk', 'kebab', 'shake'];
+// Predefined brainrot noise instrument names
+const BRAINROT_FOODS = ['kentongan', 'panci', 'toa', 'bedug', 'shake'];
 
 export class Food {
   constructor(id, x, y) {
@@ -25,7 +25,7 @@ export class Food {
   }
 }
 
-export class AlarmClock {
+export class AngrySleeper {
   constructor(id, x, y) {
     this.id = id;
     this.x = x || Math.random() * (MAP_SIZE - 200) + 100;
@@ -62,6 +62,9 @@ export class Player {
     this.nodes = [];
     this.score = 0;
     this.isDead = false;
+    this.speedMultiplier = 1.0;
+    this.speedMultiplierTimer = 0.0;
+    this.shieldTimer = 0.0;
   }
 
   getCombinedMass() {

@@ -192,7 +192,7 @@ export class HUD {
 
     const tTitle = document.createElement('div');
     tTitle.className = 'timer-title';
-    tTitle.textContent = 'Fajr Countdown';
+    tTitle.textContent = 'Tung Tung Timer';
 
     this.tValue = document.createElement('div');
     this.tValue.className = 'timer-value';
@@ -213,7 +213,7 @@ export class HUD {
 
     const label = document.createElement('span');
     label.className = 'hud-label';
-    label.textContent = 'SAHUR MASS';
+    label.textContent = 'SAHUR NOISE';
 
     this.mValue = document.createElement('span');
     this.mValue.className = 'hud-value';
@@ -304,15 +304,15 @@ export class GameOverModal {
 
     const title = document.createElement('h2');
     title.className = 'modal-title';
-    title.textContent = 'FASTING HAS BEGUN!';
+    title.textContent = 'PATROL HOUR ENDED!';
 
     const subtitle = document.createElement('div');
     subtitle.className = 'modal-subtitle';
 
     if (podium.length > 0) {
-      subtitle.innerHTML = `🏆 <b>${podium[0].name}</b> is the Ultimate Sigma with <b>${podium[0].score}</b> mass!`;
+      subtitle.innerHTML = `🏆 <b>${podium[0].name}</b> is the Ultimate Noise Leader with <b>${podium[0].score}</b> decibels!`;
     } else {
-      subtitle.textContent = 'Fajr Adhan has sounded. Time to fast!';
+      subtitle.textContent = 'The patrol has ended. Sleeping neighbors won!';
     }
 
     const statsGrid = document.createElement('div');
@@ -335,10 +335,10 @@ export class GameOverModal {
     statusBox.className = 'stat-box';
     const stLabel = document.createElement('div');
     stLabel.className = 'stat-label';
-    stLabel.textContent = 'Survival status';
+    stLabel.textContent = 'Patrol status';
     const stVal = document.createElement('div');
     stVal.className = 'stat-value';
-    stVal.textContent = personalStats.isDead ? 'Busted ☠️' : 'Full Kebab 🥙';
+    stVal.textContent = personalStats.isDead ? 'Busted 😴' : 'Noise King 🥁';
     stVal.style.color = personalStats.isDead
       ? 'var(--accent-color)'
       : 'var(--primary-color)';

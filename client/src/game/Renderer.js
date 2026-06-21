@@ -14,14 +14,31 @@ export class GameRenderer {
     this.canvas.height = window.innerHeight;
   }
 
-  draw(gameState, selfSocketId, floatingTexts) {
+  draw(gameState, selfSocketId, floatingTexts, shakeIntensity = 0) {
     this.resize();
     const ctx = this.ctx;
     const w = this.canvas.width;
     const h = this.canvas.height;
 
-    // 1. Clear background with grid pattern
-    ctx.fillStyle = '#080914';
+    // 1. Clear background with grid pattern & Sunrise Sunrise Phase
+    if (gameState.isIntermission) {
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#130f40');
+      grad.addColorStop(0.5, '#786fa6');
+      grad.addColorStop(1, '#e15f41');
+      ctx.fillStyle = grad;
+    } else {
+      const timeRatio = gameState.timer / 90; // assuming 90s round duration
+      if (timeRatio > 0.45) {
+        ctx.fillStyle = '#080914';
+      } else {
+        const trans = (0.45 - timeRatio) / 0.45;
+        const r = Math.round(8 + (35 - 8) * trans);
+        const g = Math.round(9 + (18 - 9) * trans);
+        const b = Math.round(20 + (50 - 20) * trans);
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      }
+    }
     ctx.fillRect(0, 0, w, h);
 
     // Find the player's own nodes to compute camera center
@@ -59,8 +76,14 @@ export class GameRenderer {
     this.camZoom += (targetZoom - this.camZoom) * 0.05;
 
     ctx.save();
-    // Center of screen
-    ctx.translate(w / 2, h / 2);
+    // Center of screen + Screen Shake
+    let shakeX = 0;
+    let shakeY = 0;
+    if (shakeIntensity > 0) {
+      shakeX = (Math.random() - 0.5) * shakeIntensity;
+      shakeY = (Math.random() - 0.5) * shakeIntensity;
+    }
+    ctx.translate(w / 2 + shakeX, h / 2 + shakeY);
     ctx.scale(this.camZoom, this.camZoom);
     ctx.translate(-this.camX, -this.camY);
 
@@ -156,41 +179,64 @@ export class GameRenderer {
 
   drawFood(ctx, f) {
     ctx.save();
-    ctx.translate(f.x, f.y);
+    // Floating bounce micro-animation
+    const floatY = Math.sin(Date.now() * 0.004 + f.id) * 2.5;
+    ctx.translate(f.x, f.y + floatY);
 
-    if (f.type === 'date') {
-      // Date: Brown oval
-      ctx.fillStyle = '#5c4033';
+    if (f.type === 'kentongan') {
+      // Kentongan: Brown bamboo tube with a vertical slot
+      ctx.fillStyle = '#a16207'; // bamboo brown
+      ctx.fillRect(-4, -9, 8, 18);
+      ctx.fillStyle = '#000000'; // slot
+      ctx.fillRect(-1.5, -5, 3, 10);
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-4, -9, 8, 18);
+    } else if (f.type === 'panci') {
+      // Panci: Metallic grey pan with handle
+      ctx.fillStyle = '#94a3b8'; // grey metal
       ctx.beginPath();
-      ctx.ellipse(0, 0, 10, 6, Math.PI / 4, 0, Math.PI * 2);
+      ctx.arc(0, 2, 7, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#3d2b22';
+      ctx.stroke();
+      // pan handle
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-7, 2);
+      ctx.lineTo(-14, 2);
+      ctx.stroke();
+    } else if (f.type === 'toa') {
+      // Toa: Megaphone horn speaker
+      ctx.fillStyle = '#e2e8f0'; // horn body
+      ctx.beginPath();
+      ctx.moveTo(-6, -3);
+      ctx.lineTo(4, -8);
+      ctx.lineTo(4, 8);
+      ctx.lineTo(-6, 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#64748b';
       ctx.lineWidth = 1.5;
       ctx.stroke();
-    } else if (f.type === 'water') {
-      // Water: Cyan bottle
-      ctx.fillStyle = '#00d2ff';
-      ctx.fillRect(-4, -6, 8, 12);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-2, -9, 4, 3);
-      // glow outline
-      ctx.strokeStyle = 'rgba(0, 210, 255, 0.5)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(-4, -6, 8, 12);
-    } else if (f.type === 'milk') {
-      // Milk: White box
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-5, -7, 10, 14);
-      ctx.fillStyle = '#ff0055';
-      ctx.fillRect(-5, -2, 10, 3); // red label strip
-    } else if (f.type === 'kebab') {
-      // Kebab wrapper
-      ctx.fillStyle = '#ffaa00';
+      // handle/body base
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(-9, -2, 3, 8);
+    } else if (f.type === 'bedug') {
+      // Bedug: Large horizontal drum on frame
+      ctx.fillStyle = '#7c2d12'; // wood red-brown
       ctx.beginPath();
-      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 10, 6, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#00ff55'; // lettuce green peak
-      ctx.fillRect(-3, -8, 6, 4);
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // bedug drum skin face (yellowish)
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.ellipse(10, 0, 2.5, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
     } else {
       // Grimace Shake: Purple cup
       ctx.fillStyle = '#800080';
@@ -216,13 +262,17 @@ export class GameRenderer {
     ctx.save();
     ctx.translate(a.x, a.y);
 
-    // Spiked green virus clock drawing
+    // Slow spin rotation animation of the spiked halo
+    const angleOffset = (Date.now() * 0.0006 + a.id) % (Math.PI * 2);
+
     const spikes = 16;
     const outerRadius = a.radius;
     const innerRadius = a.radius - 8;
 
-    ctx.fillStyle = '#1e3c1e';
-    ctx.strokeStyle = '#39ff14'; // Neon Green
+    ctx.save();
+    ctx.rotate(angleOffset);
+    ctx.fillStyle = '#0f172a'; // Slate background
+    ctx.strokeStyle = '#ef4444'; // Alarm Red spikes
     ctx.lineWidth = 3.5;
 
     ctx.beginPath();
@@ -234,16 +284,20 @@ export class GameRenderer {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
 
-    // Draw little clock hands inside
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -innerRadius * 0.5);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(innerRadius * 0.35, 0);
-    ctx.stroke();
+    // Draw Sleeping Face emoji in the center
+    const fontSize = a.radius * 1.1;
+    ctx.font = `${fontSize}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('😴', 0, 0);
+
+    // Draw floating Zzz above them
+    const zOffset = Math.sin(Date.now() * 0.005 + a.id) * 3 - a.radius * 0.6;
+    ctx.font = `bold ${a.radius * 0.4}px var(--font-mono)`;
+    ctx.fillStyle = 'rgba(147, 197, 253, 0.9)'; // light blue Zzz
+    ctx.fillText('Zzz', a.radius * 0.5, zOffset);
 
     ctx.restore();
   }
@@ -251,6 +305,32 @@ export class GameRenderer {
   drawPlayerNode(ctx, player, node, isSelf) {
     ctx.save();
     ctx.translate(node.x, node.y);
+
+    // Draw active powerup visual indications
+    if (player.shieldTimer > 0) {
+      // Pink shield bubble
+      ctx.strokeStyle = 'rgba(255, 0, 119, 0.7)';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, node.radius + 8, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255, 0, 119, 0.12)';
+      ctx.fill();
+    } else if (player.speedMultiplier > 1.0) {
+      // Speed trail aura
+      ctx.strokeStyle = 'rgba(0, 255, 204, 0.7)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, node.radius + 5, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (player.speedMultiplier < 1.0) {
+      // Heavy slowness aura
+      ctx.strokeStyle = 'rgba(139, 69, 19, 0.7)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, node.radius + 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     // 1. Draw glowing aura border
     ctx.shadowBlur = isSelf ? 20 : 8;
