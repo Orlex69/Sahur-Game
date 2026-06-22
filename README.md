@@ -1,7 +1,7 @@
 # Sahur.io - Brainrot "Tung Tung Sahur" Multiplayer Game
 
 ## En-tête
-- **Développeurs** : Alex B. & Antigravity (AI Agent)
+- **Développeurs** : Alexis BRAD, DUMAS Matthias, TOSCANO Léo & Antigravity (AI Agent)
 - **Description** : Sahur.io est un jeu multijoueur en temps réel basé sur le concept d'Agar.io, revisité avec humour sur le thème du célèbre meme indonésien **"Tung Tung Sahur"** (les patrouilles réveillant les habitants en frappant sur des casseroles, d'anciens tambours en bambou et des mégaphones) couplé aux memes internet ("Brainrot"). Les joueurs incarnent des patrouilleurs du bruit qui accumulent des instruments de musique (kentongan, panci, toa, bedug, shakes) pour faire le plus grand ramdam possible (grossir) avant la fin de la patrouille, tout en évitant les voisins endormis (les Sleepers 😴) sous peine d'exploser.
 - **URL de production** : https://sahur-game.onrender.com/
 - **Backend serveur recommandé** : https://sahur-game-server.onrender.com
